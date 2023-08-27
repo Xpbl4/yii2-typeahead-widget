@@ -18,5 +18,6 @@ class TypeaheadPluginAsset extends AssetBundle
     public $depends = [
         'yii\bootstrap\BootstrapPluginAsset',
 	    'xpbl4\typeahead\TypeaheadAsset',
+	    'xpbl4\typeahead\HandlebarsPluginAsset',
     ];
 }

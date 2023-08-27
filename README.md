@@ -30,14 +30,13 @@ Once the extension is installed, simply use it in your code by:
 
 ```php
 <?php
-$engine = new Bloodhound([
+$engine = new \xpbl4\typeahead\Bloodhound([
     'name' => 'countriesEngine',
-    'clientOptions' => [
+    'pluginOptions' => [
         'datumTokenizer' => new \yii\web\JsExpression("Bloodhound.tokenizers.obj.whitespace('name')"),
         'queryTokenizer' => new \yii\web\JsExpression("Bloodhound.tokenizers.whitespace"),
         'remote' => [
             'url' => Url::to(['country/autocomplete', 'query'=>'QRY']),
-            'wildcard' => 'QRY'
         ]
     ]
 ]);
@@ -45,31 +44,41 @@ $engine = new Bloodhound([
 echo \xpbl4\typeahead\Typeahead::widget([
     'id' => 'exampleInput',
     'name' => 'test',
-    'items' => ['one', 'two', 'three'],
-    'options' => ['class' => 'form-control', 'prompt' => 'Select item...'],
+    'options' => ['class' => 'form-control', 'prompt' => 'Start type to find...'],
+    'engines' => [ $engine ],
     'pluginOptions' => [
-        'url' => \yii\helpers\Url::toRoute(), /* return [items...] */
-        'initialize' => true,
-        'depends' => [
-            'depend_id' => 'depend_field',
-        ],
-        'ajaxOptions' => [
-            'delay' => 500
-        ],
-        'pagination' => [
-            'limit' => 10
-        ],
+        'highlight' => true,
+        'minLength' => 3
     ],
     'pluginEvents' => [
-        'dependent:init' => new \yii\web\JsExpression('consoleEvent'),
-        'dependent:change' => new \yii\web\JsExpression('consoleEvent'),
-        'dependent:focus' => new \yii\web\JsExpression('consoleEvent'),
-        'dependent:beforeSend' => new \yii\web\JsExpression('consoleEvent'),
-        'dependent:success' => new \yii\web\JsExpression('consoleEvent'),
-        'dependent:error' => new \yii\web\JsExpression('consoleEvent'),
-        'dependent:afterChange' => new \yii\web\JsExpression('consoleEvent'),
-
+        'typeahead:selected' => 'function (e, o) { console.log("event \'selected\' occured on " + o.value + "."); }'
+    ],
+    'data' => [
+        [
+            'name' => 'countries',
+            'displayKey' => 'value',
+            'source' => $engine->getAdapterScript()
+        ]
     ]
 ]);
 ?>
+```
+
+Note the use of the custom `wildcard`. It is required as if we use `typeahead.js` default's wildcard (`%QUERY`), Yii2 will automatically URL encode it thus making the wrong configuration for token replacement.
+
+The results need to be JSON encoded as specified on the [plugin documentation](https://github.com/twitter/typeahead.js#datum). The following is an example of a custom `Action` class that you could plug to any `Controller`:
+
+And how to add action on your `Controller` class:
+
+```php
+public function actions()
+{
+	return [
+		'autocomplete' => [
+			'class' => 'xpbl4\typeahead\actions\AutocompleteAction',
+			'model' => Country::tableName(),
+			'field' => 'name'
+		]
+	];
+}
 ```

@@ -4,6 +4,7 @@ namespace xpbl4\typeahead;
 
 use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\JsExpression;
 
@@ -25,7 +26,7 @@ class Bloodhound extends BaseObject
      * @var array the configuration of Bloodhound suggestion engine.
      * @see https://github.com/twitter/typeahead.js/blob/master/doc/bloodhound.md#options
      */
-    public $clientOptions = [];
+    public $pluginOptions = [];
 
     /**
      * @inheritdoc
@@ -54,10 +55,7 @@ class Bloodhound extends BaseObject
      */
     public function getClientScript()
     {
-        $options = $this->clientOptions !== false && !empty($this->clientOptions)
-            ? Json::encode($this->clientOptions)
-            : '{}';
-
-        return "var {$this->name} = new Bloodhound($options);\n{$this->name}.initialize();";
+	    $pluginOptions = ArrayHelper::merge([], $this->pluginOptions);
+        return "var {$this->name} = new Bloodhound(".Json::encode($pluginOptions).");\n{$this->name}.initialize();";
     }
 }
